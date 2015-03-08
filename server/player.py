@@ -1,13 +1,14 @@
 from datetime import datetime
 
 #minutes to wait when disabled
-TIMEOUT_MINUTES = 10
+TIMEOUT_MINUTES = 3
 
 class Player:
-    def __init__(self, team, name, location):
+    def __init__(self, team, name, location, block):
         self.team = team
         self.name = name
         self.last_location = location
+        self.last_block = block
         self.activation_time = datetime.now()
 
     def disable(self):
