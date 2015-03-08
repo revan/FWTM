@@ -3,7 +3,7 @@ from player import Player
 
 class Game:
     def __init__(self):
-        self.blocks = getBlockBoundaries()
+        self.blocks = getBlockBoundaries(50)
         self.players = {}
         self.team_sum = 0
 
