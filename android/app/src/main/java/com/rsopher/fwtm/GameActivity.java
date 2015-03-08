@@ -1,12 +1,15 @@
 package com.rsopher.fwtm;
 
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import retrofit.RestAdapter;
 
 public class GameActivity extends FragmentActivity {
 
@@ -23,6 +26,22 @@ public class GameActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+
+        //TEMP
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+        StrictMode.setThreadPolicy(policy);
+        System.out.println("test");
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setEndpoint("http://7cbc869b.ngrok.com")
+                .build();
+        ServerClient service = restAdapter.create(ServerClient.class);
+        Player[] players = service.getStatus().players;
+        for (Player p : players) {
+            mMap.addMarker(new MarkerOptions().position(new LatLng(p.location[0], p.location[1])).title(p.name));
+        }
+        System.out.println(players[0].name + players[0].team + players[0].is_active);
     }
 
     /**
