@@ -105,11 +105,15 @@ public class GameActivity extends FragmentActivity {
                 playerMarkerMap.get(p.name).remove();
             }
 
+            float hue = BitmapDescriptorFactory.HUE_RED;
+            if (playerId!= null && p.id == Integer.parseInt(playerId)) {
+                hue = BitmapDescriptorFactory.HUE_MAGENTA;
+            }
             playerMarkerMap.put(p.name, mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(p.location[0], p.location[1]))
                     .title(p.name)
                     .alpha(.9f)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))));
+                    .icon(BitmapDescriptorFactory.defaultMarker(hue))));
         }
     }
 
@@ -125,8 +129,15 @@ public class GameActivity extends FragmentActivity {
                     .position(new LatLng(b.center[0], b.center[1]))
                     .title("" + b.control)
                     .alpha(.9f)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))));
+                    .icon(BitmapDescriptorFactory.defaultMarker(getHueForBlock(b)))));
         }
+    }
+
+    private static float getHueForBlock(Block block) {
+        int c = block.control;
+        if (c > 10) return BitmapDescriptorFactory.HUE_BLUE;
+        if (c < -10) return BitmapDescriptorFactory.HUE_GREEN;
+        return BitmapDescriptorFactory.HUE_YELLOW;
     }
 
     /**
