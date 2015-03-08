@@ -15,4 +15,12 @@ class Player:
         self.activation_time = datetime.now() + datetime.timedelta(minutes=TIMEOUT_MINUTES)
 
     def is_active(self):
-        return datetime.now() > self.activaion_time
+        return datetime.now() > self.activation_time
+
+    def getState(self):
+        return {
+            'team' : self.team,
+            'name' : self.name,
+            'location' : [self.last_location[0], self.last_location[1]],
+            'is_active' : self.is_active()
+        }
