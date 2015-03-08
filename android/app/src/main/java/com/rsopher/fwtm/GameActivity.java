@@ -28,6 +28,7 @@ public class GameActivity extends FragmentActivity {
     private LocationManager locationManager;
     private Map<String, Marker> playerMarkerMap = new HashMap<>();
     private Map<String, Marker> blockMarkerMap = new HashMap<>();
+    private String playerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,8 @@ public class GameActivity extends FragmentActivity {
         setUpMapIfNeeded();
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
+        playerId = "1";
+        //TODO get from server
 
         //TEMP
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -61,8 +64,11 @@ public class GameActivity extends FragmentActivity {
                 Map<String, Block> blocks = status.blocks;
                 updateBlockMarkers(blocks);
 
-
                 updateBounds();
+
+                Location loc = getLocation();
+                service.updateLocation(""+loc.getLatitude(), ""+loc.getLongitude(), playerId);
+
                 handler.postDelayed(this, 3000);
             }
         };
