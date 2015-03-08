@@ -20,12 +20,15 @@ class Game:
         return player
 
     def playerFromId(self, id):
-        return self.players[id]
+        if id in self.players:
+            return self.players[id]
 
     #handles player1 attacking player2
     def processAttack(self, player1, player2):
         if player1.team != player2.team and player1.is_active():
             player2.disable()
+            return True
+        return False
 
     def updatePlayerLocation(self, player, loc):
         player.last_location = loc

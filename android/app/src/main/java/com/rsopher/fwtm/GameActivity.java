@@ -1,13 +1,17 @@
 package com.rsopher.fwtm;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
+import android.view.View;
+import android.widget.ImageButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,14 +35,29 @@ public class GameActivity extends FragmentActivity {
     private Map<String, Marker> blockMarkerMap = new HashMap<>();
     private String playerId;
     private Location last_location;
+    private ServerClient service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         setUpMapIfNeeded();
+        final ImageButton button = (ImageButton) findViewById(R.id.attack_button);
+        button.setEnabled(false);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent qrDroid = new Intent("la.droid.qr.scan");
+                startActivityForResult(qrDroid, 1);
+            }
+        });
+
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        last_location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (last_location == null) {
+            last_location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
 
         //TEMP
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -46,9 +65,9 @@ public class GameActivity extends FragmentActivity {
 
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint("http://7cbc869b.ngrok.com")
+                .setEndpoint("http://64222b7e.ngrok.com")
                 .build();
-        final ServerClient service = restAdapter.create(ServerClient.class);
+        service = restAdapter.create(ServerClient.class);
 
         final Handler handler = new Handler();
 
@@ -67,6 +86,10 @@ public class GameActivity extends FragmentActivity {
                     updateBounds();
                     if (last_location != null) {
                         playerId = service.registerPlayer("Bob", "" + last_location.getLatitude(), "" + last_location.getLongitude());
+                        if (playerId != null) {
+                            button.setEnabled(true);
+                            generateQR(playerId);
+                        }
                     }
                 } else {
                     service.updateLocation("" + last_location.getLatitude(), "" + last_location.getLongitude(), playerId);
@@ -143,7 +166,7 @@ public class GameActivity extends FragmentActivity {
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
+     * call setUpMap() once when {@link #mMap} is not null.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
@@ -161,21 +184,7 @@ public class GameActivity extends FragmentActivity {
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap();
-            }
         }
-    }
-
-    /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
-     * <p/>
-     * This should only be called once and when we are sure that {@link #mMap} is not null.
-     */
-    private void setUpMap() {
-//        last_location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
     }
 
     LocationListener locationListener = new LocationListener() {
@@ -193,4 +202,23 @@ public class GameActivity extends FragmentActivity {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     };
+
+    private void generateQR(String id) {
+        Intent qrDroid = new Intent("la.droid.qr.encode");
+        qrDroid.putExtra("la.droid.qr.code", id);
+        startActivityForResult(qrDroid, 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        String result = data.getExtras().getString("la.droid.qr.result");
+
+        if (requestCode == 0) {
+            Intent browser = new Intent(Intent.ACTION_VIEW);
+            browser.setData(Uri.parse(result));
+            startActivity(browser);
+        } else if (requestCode == 1) {
+            service.sendAttack(playerId, result);
+        }
+    }
 }

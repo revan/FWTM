@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 #minutes to wait when disabled
 TIMEOUT_MINUTES = 3
@@ -13,7 +13,7 @@ class Player:
         self.activation_time = datetime.now()
 
     def disable(self):
-        self.activation_time = datetime.now() + datetime.timedelta(minutes=TIMEOUT_MINUTES)
+        self.activation_time = datetime.now() + timedelta(minutes=TIMEOUT_MINUTES)
 
     def is_active(self):
         return datetime.now() > self.activation_time

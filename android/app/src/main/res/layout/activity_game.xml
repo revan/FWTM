@@ -4,4 +4,14 @@
           android:layout_height="match_parent"
           android:id="@+id/map"
           tools:context=".GameActivity"
-          android:name="com.google.android.gms.maps.SupportMapFragment"/>
+          android:name="com.google.android.gms.maps.SupportMapFragment">
+    <ImageButton
+        android:id="@+id/attack_button"
+        android:src="@drawable/ic_menu_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:paddingRight="10dp"/>
+</fragment>
