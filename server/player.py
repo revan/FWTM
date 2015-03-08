@@ -22,5 +22,5 @@ class Player:
             'team' : self.team,
             'name' : self.name,
             'location' : [self.last_location[0], self.last_location[1]],
-            'is_active' : self.is_active()
+            'is_active' : 'true' if self.is_active() else 'false'
         }

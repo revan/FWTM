@@ -38,7 +38,7 @@ class Game:
             'blocks' : {
                 block.id : {
                     'boundaries' : [[boundary[0], boundary[1]] for boundary in block.boundaries],
-                    'center' : block.center,
+                    'center' : [block.center[0], block.center[1]],
                     'control' : block.control
                 }  for block in self.blocks
             }
