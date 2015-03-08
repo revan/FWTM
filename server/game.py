@@ -33,6 +33,7 @@ class Game:
             'blocks' : {
                 block.id : {
                     'boundaries' : block.boundaries,
+                    'center' : block.center,
                     'control' : block.control
                 }  for block in self.blocks
             }

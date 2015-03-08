@@ -24,6 +24,6 @@ def parseKML(p=PICKLE_FILE, f=DATA_FILE):
 def getBlockBoundaries(number=10):
     fastkml = parseKML()
     blocks = list(list(fastkml.features())[0].features())[0:number]
-    l_blocks = [Block(index, [(point._coordinates[1], point._coordinates[0]) for point in block._geometry.geometry._geoms[1]._exterior._geoms]) for index, block in enumerate(blocks)]
+    l_blocks = [Block(index, [(point._coordinates[1], point._coordinates[0]) for point in block._geometry.geometry._geoms[1]._exterior._geoms], (block._geometry.geometry._geoms[0]._coordinates[1], block._geometry.geometry._geoms[0]._coordinates[0])) for index, block in enumerate(blocks)]
 
     return l_blocks

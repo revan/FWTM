@@ -3,9 +3,10 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 class Block:
-    def __init__(self, id, boundaries):
+    def __init__(self, id, boundaries, center):
         self.id = id
         self.boundaries = boundaries
+        self.center = center
         self.poly = Polygon(boundaries)
         self.control = 0.0
 
