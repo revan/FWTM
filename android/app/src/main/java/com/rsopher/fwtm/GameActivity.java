@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 
@@ -34,34 +35,45 @@ public class GameActivity extends FragmentActivity {
         setContentView(R.layout.activity_game);
         setUpMapIfNeeded();
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+
+        //TEMP
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setEndpoint("http://7cbc869b.ngrok.com")
+                .build();
+        final ServerClient service = restAdapter.create(ServerClient.class);
+
+
+        final Handler handler = new Handler();
+
+        final Runnable poll = new Runnable() {
+            @Override
+            public void run() {
+                ServerStatus status = service.getStatus();
+
+                Player[] players = status.players;
+                updatePlayerMarkers(players);
+
+                Map<String, Block> blocks = status.blocks;
+                updateBlockMarkers(blocks);
+
+
+                updateBounds();
+                handler.postDelayed(this, 3000);
+            }
+        };
+
+        poll.run();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-
-        //TEMP
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-
-        StrictMode.setThreadPolicy(policy);
-        System.out.println("test");
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint("http://7cbc869b.ngrok.com")
-                .build();
-        ServerClient service = restAdapter.create(ServerClient.class);
-        ServerStatus status = service.getStatus();
-
-        Player[] players = status.players;
-        updatePlayerMarkers(players);
-
-        Map<String, Block> blocks = status.blocks;
-        updateBlockMarkers(blocks);
-
-        System.out.println(players[0].name + players[0].team + players[0].is_active);
-
-        updateBounds();
     }
 
     private void updateBounds() {
