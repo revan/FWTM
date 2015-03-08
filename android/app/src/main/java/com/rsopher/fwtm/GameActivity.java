@@ -2,6 +2,7 @@ package com.rsopher.fwtm;
 
 import android.content.Context;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,6 +30,7 @@ public class GameActivity extends FragmentActivity {
     private Map<String, Marker> playerMarkerMap = new HashMap<>();
     private Map<String, Marker> blockMarkerMap = new HashMap<>();
     private String playerId;
+    private Location last_location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,7 @@ public class GameActivity extends FragmentActivity {
         setContentView(R.layout.activity_game);
         setUpMapIfNeeded();
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
         playerId = "1";
         //TODO get from server
@@ -66,8 +69,8 @@ public class GameActivity extends FragmentActivity {
 
                 updateBounds();
 
-                Location loc = getLocation();
-                service.updateLocation(""+loc.getLatitude(), ""+loc.getLongitude(), playerId);
+                if (last_location != null)
+                    service.updateLocation(""+last_location.getLatitude(), ""+last_location.getLongitude(), playerId);
 
                 handler.postDelayed(this, 3000);
             }
@@ -161,33 +164,22 @@ public class GameActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-//        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+//        last_location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
     }
 
-    private Location getLocation() {
-        return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-    }
+    LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location loc) {
+            last_location = loc;
+        }
 
-//    private class MyLocationListener implements LocationListener {
-//
-//        @Override
-//        public void onLocationChanged(Location loc) {
-//            Toast.makeText(
-//                    getBaseContext(),
-//                    "Location changed: Lat: " + loc.getLatitude() + " Lng: "
-//                            + loc.getLongitude(), Toast.LENGTH_SHORT).show();
-//            String longitude = "Longitude: " + loc.getLongitude();
-//            String latitude = "Latitude: " + loc.getLatitude();
-//
-//        }
-//
-//        @Override
-//        public void onProviderDisabled(String provider) {}
-//
-//        @Override
-//        public void onProviderEnabled(String provider) {}
-//
-//        @Override
-//        public void onStatusChanged(String provider, int status, Bundle extras) {}
-//    }
+        @Override
+        public void onProviderDisabled(String provider) {}
+
+        @Override
+        public void onProviderEnabled(String provider) {}
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+    };
 }
