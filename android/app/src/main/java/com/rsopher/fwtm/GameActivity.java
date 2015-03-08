@@ -73,7 +73,7 @@ public class GameActivity extends FragmentActivity {
             }
         };
 
-        poll.run();
+        handler.postDelayed(poll, 1000);
     }
 
     @Override

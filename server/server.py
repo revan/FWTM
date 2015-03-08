@@ -1,9 +1,15 @@
 from flask import Flask
+from game import Game
+
 app = Flask(__name__)
 
-@app.route("/update/loc/<lat>/<lon>/<id>", methods=['POST'])
+game = Game()
+
+@app.route("/update/loc/<lat>/<lon>/<int:id>", methods=['POST'])
 def capture(lat, lon, id):
-    print(lat, lon, id)
+    player = game.playerFromId(id)
+    game.updatePlayerLocation(player, (float(lat), float(lon)))
+    game.processCapture(player)
     return '200'
     
 @app.route("/update/status")
