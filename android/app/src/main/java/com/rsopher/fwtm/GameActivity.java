@@ -1,25 +1,39 @@
 package com.rsopher.fwtm;
 
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import retrofit.RestAdapter;
 
 public class GameActivity extends FragmentActivity {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private LocationManager locationManager;
+    private Map<String, Marker> playerMarkerMap = new HashMap<>();
+    private Map<String, Marker> blockMarkerMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         setUpMapIfNeeded();
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
     }
 
     @Override
@@ -37,11 +51,61 @@ public class GameActivity extends FragmentActivity {
                 .setEndpoint("http://7cbc869b.ngrok.com")
                 .build();
         ServerClient service = restAdapter.create(ServerClient.class);
-        Player[] players = service.getStatus().players;
-        for (Player p : players) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(p.location[0], p.location[1])).title(p.name));
-        }
+        ServerStatus status = service.getStatus();
+
+        Player[] players = status.players;
+        updatePlayerMarkers(players);
+
+        Map<String, Block> blocks = status.blocks;
+        updateBlockMarkers(blocks);
+
         System.out.println(players[0].name + players[0].team + players[0].is_active);
+
+        updateBounds();
+    }
+
+    private void updateBounds() {
+        com.google.android.gms.maps.model.LatLngBounds.Builder b = LatLngBounds.builder();
+        for (Marker m : playerMarkerMap.values())
+            b = b.include(m.getPosition());
+
+        for (Marker m : blockMarkerMap.values())
+            b = b.include(m.getPosition());
+
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(b.build(),
+                getWindowManager().getDefaultDisplay().getHeight(),
+                getWindowManager().getDefaultDisplay().getWidth(), 5));
+    }
+
+    private void updatePlayerMarkers(Player[] players) {
+        for (Player p : players) {
+            if (playerMarkerMap.containsKey(p.name)) {
+                playerMarkerMap.remove(p.name);
+            }
+
+            playerMarkerMap.put(p.name, mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(p.location[0], p.location[1]))
+                    .title(p.name)
+                    .alpha(.9f)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))));
+        }
+    }
+
+    private void updateBlockMarkers(Map<String, Block> blocks) {
+        for (String key : blocks.keySet()) {
+            Block b = blocks.get(key);
+
+            if (blockMarkerMap.containsKey(key)) {
+                blockMarkerMap.get(key).remove();
+            }
+
+            blockMarkerMap.put(key, mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(b.center[0], b.center[1]))
+                    .title("" + b.control)
+                    .alpha(.9f)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))));
+        }
     }
 
     /**
@@ -79,6 +143,33 @@ public class GameActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+//        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
+
+    private Location getLocation() {
+        return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    }
+
+//    private class MyLocationListener implements LocationListener {
+//
+//        @Override
+//        public void onLocationChanged(Location loc) {
+//            Toast.makeText(
+//                    getBaseContext(),
+//                    "Location changed: Lat: " + loc.getLatitude() + " Lng: "
+//                            + loc.getLongitude(), Toast.LENGTH_SHORT).show();
+//            String longitude = "Longitude: " + loc.getLongitude();
+//            String latitude = "Latitude: " + loc.getLatitude();
+//
+//        }
+//
+//        @Override
+//        public void onProviderDisabled(String provider) {}
+//
+//        @Override
+//        public void onProviderEnabled(String provider) {}
+//
+//        @Override
+//        public void onStatusChanged(String provider, int status, Bundle extras) {}
+//    }
 }
