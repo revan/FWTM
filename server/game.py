@@ -5,10 +5,19 @@ class Game:
     def __init__(self):
         self.blocks = getBlockBoundaries()
         self.players = {}
-        self.addPlayer(Player(1, 1, "Alice", (40.58393104493445, -74.08781943111359), self._findBlockForLoc((40.58393104493445, -74.08781943111359))))
+        self.team_sum = 0
 
-    def addPlayer(self, player):
+    def addPlayer(self, name, loc):
+        id = len(self.players)
+
+        team = 1
+        if self.team_sum > 0:
+            team = -1
+        self.team_sum += team
+        
+        player = Player(id, team, name, loc, self._findBlockForLoc(loc))
         self.players[player.id] = player
+        return player
 
     def playerFromId(self, id):
         return self.players[id]
@@ -28,7 +37,7 @@ class Game:
                 cur_block.updateControl(player)
 
     def _findBlockForPlayer(self, player):
-        if player.last_block.contains(player.last_location):
+        if player.last_block and player.last_block.contains(player.last_location):
             return player.last_block
 
         #player has changed blocks, do dumb search
@@ -41,7 +50,7 @@ class Game:
 
     def getState(self):
         return {
-            'players' : [player.getState() for player in self.players],
+            'players' : [self.players[id].getState() for id in self.players],
             'blocks' : {
                 block.id : {
                     'boundaries' : [[boundary[0], boundary[1]] for boundary in block.boundaries],

@@ -10,6 +10,10 @@ import retrofit.http.Path;
  * Created by revan on 3/8/15.
  */
 public interface ServerClient {
+
+    @POST("/register/{name}/{lat}/{lon}")
+    String registerPlayer(@Path("name") String name, @Path("lat") String lat, @Path("lon") String lon);
+
     @POST("/update/loc/{lat}/{lon}/{id}")
     Response updateLocation(@Path("lat") String lat, @Path("lon") String lon, @Path("id") String id);
 

@@ -40,9 +40,6 @@ public class GameActivity extends FragmentActivity {
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
-        playerId = "1";
-        //TODO get from server
-
         //TEMP
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -52,7 +49,6 @@ public class GameActivity extends FragmentActivity {
                 .setEndpoint("http://7cbc869b.ngrok.com")
                 .build();
         final ServerClient service = restAdapter.create(ServerClient.class);
-
 
         final Handler handler = new Handler();
 
@@ -67,10 +63,14 @@ public class GameActivity extends FragmentActivity {
                 Map<String, Block> blocks = status.blocks;
                 updateBlockMarkers(blocks);
 
-                updateBounds();
-
-                if (last_location != null)
-                    service.updateLocation(""+last_location.getLatitude(), ""+last_location.getLongitude(), playerId);
+                if (playerId == null) {
+                    updateBounds();
+                    if (last_location != null) {
+                        playerId = service.registerPlayer("Bob", "" + last_location.getLatitude(), "" + last_location.getLongitude());
+                    }
+                } else {
+                    service.updateLocation("" + last_location.getLatitude(), "" + last_location.getLongitude(), playerId);
+                }
 
                 handler.postDelayed(this, 3000);
             }
@@ -102,7 +102,7 @@ public class GameActivity extends FragmentActivity {
     private void updatePlayerMarkers(Player[] players) {
         for (Player p : players) {
             if (playerMarkerMap.containsKey(p.name)) {
-                playerMarkerMap.remove(p.name);
+                playerMarkerMap.get(p.name).remove();
             }
 
             playerMarkerMap.put(p.name, mMap.addMarker(new MarkerOptions()
